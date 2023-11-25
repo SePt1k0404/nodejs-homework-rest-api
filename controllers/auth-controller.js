@@ -69,6 +69,7 @@ const login = async (req, res, next) => {
       id: user._id,
     };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "23h" });
+    await User.findByIdAndUpdate(user._id, { token });
     res.json({
       token,
       user: {
@@ -81,7 +82,33 @@ const login = async (req, res, next) => {
   }
 };
 
+const getCurrent = async (req, res, next) => {
+  try {
+    const { email, subscription } = req.user;
+    res.json({ email, subscription });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const logout = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const user = await User.findByIdAndUpdate(_id, { token: "" });
+    if (!user) {
+      const error = new Error("Not authorized");
+      error.status(401);
+      throw error;
+    }
+    res.status(204).json();
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   signup,
   login,
+  getCurrent,
+  logout,
 };
