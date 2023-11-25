@@ -9,6 +9,12 @@ const userSchema = Joi.object({
   password: Joi.string().required(),
 });
 
+const updateSubscriptionSchema = Joi.object({
+  subscription: Joi.string()
+    .valid(...["starter", "pro", "business"])
+    .required(),
+});
+
 const { JWT_SECRET } = process.env;
 
 const signup = async (req, res, next) => {
@@ -106,9 +112,42 @@ const logout = async (req, res, next) => {
   }
 };
 
+const updateSubscription = async (req, res, next) => {
+  try {
+    const updateSubscriptionValidate = updateSubscriptionSchema.validate(
+      req.body
+    );
+    if (updateSubscriptionValidate.error) {
+      const error = new Error(updateSubscriptionValidate.error.message);
+      error.status = 400;
+      throw error;
+    }
+    const { _id } = req.user;
+    const user = await User.findByIdAndUpdate(
+      _id,
+      {
+        subscription: req.body.subscription,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+    if (!user) {
+      const error = new Error("Not authorized");
+      error.status(401);
+      throw error;
+    }
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   signup,
   login,
   getCurrent,
   logout,
+  updateSubscription,
 };
