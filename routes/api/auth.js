@@ -12,8 +12,8 @@ authRouter.post("/logout", authenticate, userController.logout);
 authRouter.patch("/", authenticate, userController.updateSubscription);
 authRouter.patch(
   "/avatars",
-  upload.single("avatar"),
   authenticate,
+  upload.single("avatar"),
   userController.updateAvatar
 );
 
