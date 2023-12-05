@@ -114,7 +114,7 @@ const logout = async (req, res, next) => {
     const user = await User.findByIdAndUpdate(_id, { token: "" });
     if (!user) {
       const error = new Error("Not authorized");
-      error.status(401);
+      error.status = 401;
       throw error;
     }
     res.status(204).json();
@@ -146,7 +146,7 @@ const updateSubscription = async (req, res, next) => {
     );
     if (!user) {
       const error = new Error("Not authorized");
-      error.status(401);
+      error.status = 401;
       throw error;
     }
     res.json(user);
@@ -157,13 +157,18 @@ const updateSubscription = async (req, res, next) => {
 
 const updateAvatar = async (req, res, next) => {
   try {
+    if (!req.file) {
+      const error = new Error("File not exist");
+      error.status = 404;
+      throw error;
+    }
     const { path: oldPath, filename } = req.file;
     const image = await Jimp.read(oldPath);
     image.resize(250, 250);
     await image.writeAsync(oldPath);
     const newPath = path.join(avatarPath, filename);
     await fs.rename(oldPath, newPath);
-    const avatarURL = path.join("public", "avatars", filename);
+    const avatarURL = path.join("avatars", filename);
     const { _id } = req.user;
     const user = await User.findByIdAndUpdate(
       _id,
@@ -176,7 +181,7 @@ const updateAvatar = async (req, res, next) => {
     );
     if (!user) {
       const error = new Error("Not authorized");
-      error.status(401);
+      error.status = 401;
       throw error;
     }
     res.json({
